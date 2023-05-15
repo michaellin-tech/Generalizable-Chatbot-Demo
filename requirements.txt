@@ -1,0 +1,8 @@
+Flask==2.3.2
+openai==0.27.6
+gunicorn==20.1.0
+google-api-python-client==2.19.0
+pdfminer.six==20221105
+PyPDF2==3.0.1
+langchain==0.0.154
+Llama-index==0.6.0a6
