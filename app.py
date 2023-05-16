@@ -15,7 +15,7 @@ app = Flask(__name__)
 
 # Helper method to build an index given a list of PDF url's
 
-def build_index(listOfUrls, api_key):
+def build_index(listOfUrls, api_key, session_id):
     # set maximum input size
     max_input_size = 4096
     # set number of output tokens
@@ -25,15 +25,14 @@ def build_index(listOfUrls, api_key):
     # set chunk size limit
     chunk_size_limit = 600
 
-    listOfUrls = request.args.get('fileurls').split(", ")
-    session_id = request.args.get('session_id')
-    
+    if (not listOfUrls or not session_id):
+        return {}
+
     listOfFiles = []
 
     # Save all the files uploaded to disk so we can index them in the next step.
     for oneFileUrl in listOfUrls:
         url = 'https:' + oneFileUrl
-
         fileIdentifier = uuid.uuid4()
         fileName = str(fileIdentifier) + ".pdf"
         response = requests.get(url)
@@ -71,14 +70,23 @@ def build_index(listOfUrls, api_key):
 def construct_index():
     api_key = request.args.get('api_key')
     listOfUrls = request.args.get('fileurls').split(", ")
-    build_index(listOfUrls, api_key)
+    session_id = request.args.get('session_id')
+    
+    if (not listOfUrls or not session_id or not api_key):
+        return {}
+    
+    build_index(listOfUrls, api_key, session_id)
     return {}
 
 @app.route('/query_index/', methods=['GET', 'POST'])
 def query_index():
+
     os.environ["OPENAI_API_KEY"] = request.args.get('api_key')
     session_id = request.args.get('session_id')
     question = request.args.get('question')
+
+    if (not question or not session_id):
+        return {}
 
     # rebuild storage context
     storage_context = StorageContext.from_defaults(persist_dir='./storage/' + session_id)
